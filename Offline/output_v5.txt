@@ -1,0 +1,50 @@
+n
+                                                                                                                                                                                                                                                                                                                                                       A
+                             init_xpy M
+                                                                                            roadmap.md
+                                                                                                                                                                env                                                      vector_C              db-py
+                                                                                                                                                                                                                                                                                             embeddingspy
+                                                                                                                                                                                                                                                                                                                                                                      rag_apf
+                          embeddings py
+Ore                                                                                     EmbeddingModel
+    1              import ollama
+    2
+    3
+                    class              EmbeddingModel:
+                                  def                 init                (self, nodel-"nxbai-embed-large") :
+                                                self.model
+                                                                                             model
+                                  def list_models(self) :
+                                                returnxbai-embed-large",
+                                                              "embeddinggemma: latest"
+   14
+    15                             def embed(self ,
+                                                                                           text) :
+     16                                                                                ollama.embeddings (
+                                                  response
+     17                                                        model-self.model,
+     18                                                        prompt-text
+      19
+      20
+      21                                          return response ["embedding"]                                                                                                                                                                                                                                                           I
+       22
+       23
+       24                      Embeddings Adapter
+        25                     Supports both OLlama and sentence-transformers With
+                                                                                                                                                                                                               unified interface.
+                                                                                                                                                                                                          a
+         26
+         27,
+         28                     from typing import Optional,
+                                                                                                                               Literal
+          29                      from abc  import ABC, abstractmethod
+          30                     import numpy a5 np
+           31
+           32                     from            core,config import Config
+           33
+           34
+            35                     class Embedd_                        lingsExcept ion(Exception) :
+            36                                           'Base exception for embeddings-related errors_
+             37                                  pass
+                                                                                                                                                                                                                                                                                                                                                                     LF          (} P
+                                                                                                                                                                                                                                                                                                         X

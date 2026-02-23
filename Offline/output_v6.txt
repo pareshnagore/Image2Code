@@ -1,0 +1,86 @@
+                    Terminal
+                                                                            Window
+n
+                                                                                                                                Help
+                                                                                                                                                                                                                                                            Agent_ng
+                                    ~init_'py M
+                                                                                                                                                roadmap md
+                                                                                                                                                                                                                                                                                                                                                            vector_dbpy
+                                                                                                                                                                                                                                                                env
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    embeddings-py
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            rag_apf
+                                        embeddings py
+                                                                                                                                            EmbeddingModel
+Ore
+                            import ollama
+    1
+    2
+    3
+                                class EmbeddingModel;
+    4
+                                                                                    Jnit_(self ,
+                                                    def
+                                                                                                                                                                                                    'mxbai-embed-large") :
+                                                                                                                                                                model-"
+                                                                            self.model
+                                                                                                                                                    model
+        8
+                                                    def list_models(self) :
+                                                                            return
+                                                                                                        "enbeddinggenardetest"
+    15
+                                                        def embed(self,
+                                                                                                                                                text)
+        16
+                                                                                                                                            ollama. embeddings
+                                                                                response
+        17
+                                                                                                    model-self.model,
+        18
+                                                                                                    prompt-text
+        19
+        20
+        21
+                                                                                                                    response ["embedding" ]
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                I
+                                                                                return
+        22
+        23
+                                                Embeddings Adapter
+            24
+                                                                                                                                                    for Agent_ng.
+            25
+                                                Supports both OlLama
+                                                                                                                                                                and sentence-transformers With
+                                                                                                                                                                                                                                                                                                                                            unified interface.
+                                                                                                                                                                                                                                                                                                                                a
+            26
+            27,
+            28
+                                                    from typing import Optional,
+                                                                                                                                                                                                        Literal
+                29
+                                                    from abc  import ABC, abstractmethod
+                30
+                                                    import numpy a5 Dp
+                31
+                                                    from core,config import Config
+                32
+                33
+                34
+                    35
+                                                        class
+                                                                                        Embedd ingsException (Exception)
+                    36
+                                                                                            'Base exception
+                                                                                                                                                                        for embeddings-related errors,
+                    37
+                                                                            pass
+                                                                                                                                                                                                                                                                                                                        Parosh Nagore (6 days ag0)
+                                                                                                                                                                                                                                                                                                                                                                                                                                            Ln 4, Col 22
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Spaces: 4
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        UTF-8
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                (} P
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            LF
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            00
+                                                                                                                                                                                                                    MacBook Air

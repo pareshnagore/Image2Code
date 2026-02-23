@@ -1,0 +1,65 @@
+Terminal
+Window
+n
+Help
+A
+Agent_ng"'
+_nit_py M
+roadmap md
+vector_db-py
+.env
+embeddings py
+rag_api
+embeddings py
+8
+48 EmbeddingModel
+ore
+import ollana
+1
+2
+3
+class Ebeddinglodely
+def
+self model = model
+8
+def Ust_models(self) :
+return [
+"nxbai-embed-large" ,
+"embeddinggemma:Latest"
+'oleat): eubeddings(
+model-self-model,
+"Prompt_text
+19
+2
+I
+return response["embedding"]
+23
+24
+Enbeddings Adapter for Agent_ng:
+25
+Supports both Ollama and Sentence-transformers With & unified interface.
+26
+27
+28
+frow typing Amport Optional, Literal
+from abc import ABC, abstractmethod.
+29
+30
+31
+from core config Amport Confag
+32
+33
+34
+35
+class Enbedd AngsExcept Aon(Exception) ,
+36
+"Base exception for embeddings-related errors,
+37
+pass
+Paresh Nagore (6 deye eg0)
+Ln 4, Col 22
+Spaces: 4
+UTF-8
+@O
+K
+MacBook Air
