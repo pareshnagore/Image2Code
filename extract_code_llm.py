@@ -8,10 +8,7 @@ import json
 
 load_dotenv()
 
-
-# MODEL = "qwen3-vl:8b"   # change to 4b if needed
 MODEL = "qwen3-vl:235b-cloud"
-# MODEL = "gemma3:27b-cloud"
 OLLAMA_HOST = "http://localhost:11434"  # Change if Ollama is on different host/port
 
 PROMPT = """
@@ -66,28 +63,55 @@ OUTPUT FORMAT (STRICT JSON):
   "format": "ipynb | python | javascript | html | cpp | json | yaml | text",
   "language": "python | javascript | cpp | html | ...",
   "filename": "optional_filename"  # include if filename is visible in the image, otherwise omit
+  "line_numbers_visible": true,
+  "start_line": 1,
+  "end_line": 50,
+  "total_lines": 50,
+  "is_notebook": false,
   "cells": [
     {
-      "type": "code/markdown",
-      "content": "exact code or markdown for this cell"
+      "type": "code | markdown",
+      "content": "exact code or markdown for this cell",
+      "start_line": 1,
+      "end_line": 10
     },
   ]
 }
-"""
 
+
+ADDITIONAL REQUIRED METADATA FOR MULTI-IMAGE RECONSTRUCTION:
+
+The output JSON MUST also include these fields:
+
+{
+  "tab_name": "exact visible ACTIVE tab name or empty string",
+  "line_numbers_visible": true or false,
+  "start_line": integer if line numbers visible, else null,
+  "end_line": integer if line numbers visible, else null,
+  "total_lines": integer count of lines visible in this image,
+  "is_notebook": true or false
+}
+
+RULES:
+
+- start_line and end_line MUST be exact numbers if visible
+- NEVER guess line numbers
+- If line numbers not visible, use null
+- total_lines MUST count only actual code lines extracted
+- tab_name MUST match exactly visible active tab text
+- These fields are REQUIRED even if null
+"""
 
 def extract_code(image_path):
     # Read and encode image as base64
     with open(image_path, "rb") as f:
         image_data = base64.b64encode(f.read()).decode("utf-8")
-    
     client = ollama.Client(
         host=os.getenv("OLLAMA_CLOUD_HOST", OLLAMA_HOST),
         headers={
             "Authorization": f"Bearer {os.getenv('OLLAMA_API_KEY')}"
         }
     )
-
     response = client.chat(
         model=MODEL,
         messages=[
@@ -103,13 +127,13 @@ def extract_code(image_path):
             "top_k": 1,
             "repeat_penalty": 1.0,
             "seed": 42,
-            "num_predict": 4096
+            "num_predict": 4096,
+            "num_ctx": 8192
         },
         format="json"
     )
 
     return response['message']['content']
-
 
 def parse_response(response_text):
     try:
@@ -117,7 +141,6 @@ def parse_response(response_text):
         if "```" in response_text:
             response_text = response_text.split("```")[1]
             response_text = response_text.replace("json", "", 1).strip()
-
         data = json.loads(response_text)
         # format_type = data.get("format", "python")
         # language = data.get("language", "python")
@@ -133,14 +156,12 @@ def parse_response(response_text):
         }
     
 def save_as_ipynb(cells, output_file):
-
     notebook = {
         "cells": [],
         "metadata": {},
         "nbformat": 4,
         "nbformat_minor": 5
     }
-
     for cell in cells:
         notebook["cells"].append({
             "cell_type": "code",
@@ -149,7 +170,6 @@ def save_as_ipynb(cells, output_file):
             "outputs": [],
             "source": cell["content"].splitlines(keepends=True)
         })
-
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(notebook, f, indent=2)
 
@@ -171,7 +191,6 @@ def save_as_ipynb(cells, output_file):
 #     with open(output_file, "w", encoding="utf-8") as f:
 #         json.dump(notebook, f, indent=2)
 
-
 def save_output(code, output_file):
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(code)
@@ -183,14 +202,12 @@ def save_as_code(cells, output_file):
             if i != len(cells) - 1:
                 f.write("\n")
 
-
 def main():
-
     if len(sys.argv) < 2:
         print("Usage:")
         print("python extract_code_llm.py image.jpg")
         return
-
+    
     image_path = sys.argv[1]
 
     if not os.path.exists(image_path):
@@ -215,7 +232,6 @@ def main():
     filename_from_image = parsed.get("filename", "")
     cells = parsed.get("cells", [])
 
-
     # language = parsed["language"].lower()
     # format_ext = parsed["format"].lower()
     # code = parsed["code"]
@@ -234,7 +250,6 @@ def main():
         save_as_code(cells, output_file)
 
     print(f"Saved to {output_file}")
-
 
 if __name__ == "__main__":
     main()
