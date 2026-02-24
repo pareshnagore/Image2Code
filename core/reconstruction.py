@@ -4,6 +4,9 @@ from typing import List, Dict, Any
 import json
 
 from core.models import ImageBlock
+from core.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class CodeReconstructor:
@@ -30,6 +33,7 @@ class CodeReconstructor:
         }
         """
         if not blocks:
+            logger.warning("Reconstruct: No blocks provided")
             return {
                 "filename": "reconstructed.txt",
                 "format": "txt",
@@ -37,12 +41,15 @@ class CodeReconstructor:
             }
 
         fmt = blocks[0].format or "txt"
+        logger.info(f"Starting reconstruction | block_count: {len(blocks)} | format: {fmt}")
 
         # if fmt == "ipynb":
         if blocks[0].is_notebook:
+            logger.info(f"Reconstruction type: NOTEBOOK")
             return self._reconstruct_notebook(blocks)
 
         else:
+            logger.info(f"Reconstruction type: CODE")
             return self._reconstruct_code(blocks)
 
     # ============================================================
@@ -53,18 +60,27 @@ class CodeReconstructor:
 
         final_lines: List[str] = []
 
-        for block in blocks:
+        for idx, block in enumerate(blocks, 1):
             new_lines = block.cells[0]["content"].splitlines() if block.cells else block.code.splitlines() # type: ignore
-            print("New block lines:", new_lines)
+            
+            logger.debug(f"Processing code block {idx}/{len(blocks)} | lines: {len(new_lines)}")
+            
             if final_lines == []:
                 final_lines.extend(new_lines)
+                logger.debug(f"First block appended | total_lines: {len(final_lines)}")
                 continue
+            
             overlap = self._detect_overlap(final_lines, new_lines)
+            
+            if overlap > 0:
+                logger.debug(f"Overlap detected | block: {idx} | overlap_lines: {overlap}")
+            
             final_lines.extend(new_lines[overlap:])
-            print("Current final lines:", final_lines)
+            logger.debug(f"Block merged | total_lines: {len(final_lines)}")
         
         final_code = "\n".join(final_lines)
-        print("Final reconstructed code:", final_code)
+        
+        logger.info(f"Code reconstruction complete | final_lines: {len(final_lines)} | filename: {blocks[0].filename}")
 
         return {
             "filename": blocks[0].filename,
@@ -77,11 +93,17 @@ class CodeReconstructor:
     # ============================================================
 
     def _reconstruct_notebook(self, blocks: List[ImageBlock]) -> Dict[str, Any]:
+        logger.info(f"Notebook reconstruction starting | block_count: {len(blocks)}")
+        
         cells = []
-        for block in blocks:
+        for block_idx, block in enumerate(blocks, 1):
             if not block.cells:
+                logger.debug(f"Block {block_idx}: no cells found")
                 continue
-            for cell in block.cells:
+            
+            logger.debug(f"Processing block {block_idx} | cells_count: {len(block.cells)}")
+            
+            for cell_idx, cell in enumerate(block.cells, 1):
                 merged = False
                 # try merge with previous cell if overlap
                 if cells and cell["type"] == "code" and cells[-1]["type"] == "code": # type: ignore
@@ -90,11 +112,15 @@ class CodeReconstructor:
                         cell["content"].splitlines() # type: ignore
                     )
                     if overlap > 0:
+                        logger.debug(f"Cell merge: overlap detected | lines: {overlap}")
                         new_lines = cell["content"].splitlines()[overlap:] # type: ignore
                         cells[-1]["content"] += "\n" + "\n".join(new_lines)
                         merged = True
+                
                 if not merged:
                     cells.append(cell)
+                    logger.debug(f"Cell added | type: {cell['type']} | merged: {merged}") # type: ignore
+        
         notebook = {
             "cells": [
                 {
@@ -110,6 +136,8 @@ class CodeReconstructor:
             "nbformat": 4,
             "nbformat_minor": 5
         }
+        
+        logger.info(f"Notebook reconstruction complete | cells_count: {len(cells)}")
 
         return {
             "filename": blocks[0].filename,

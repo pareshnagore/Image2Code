@@ -1,0 +1,49 @@
+# Logging Configuration for Image2Code
+# This file defines how loguru should handle logging across the application
+# 
+# Environment variables override these settings:
+# - LOG_LEVEL: Debug/Info/Warning/Error/Critical (default: INFO)
+# - LOG_FORMAT: plain or json (default: plain)
+# - LOG_DIRECTORY: Path to logs directory (default: logs)
+# - ENVIRONMENT: dev/prod/debug (default: dev)
+
+version: 1
+disable_existing_loggers: false
+
+# Environment: dev, prod, or debug
+# In dev/debug: logs also appear in console
+# In prod: logs only go to files
+environment: dev
+
+# Where to store log files
+log_directory: logs
+
+# Logging level: TRACE, DEBUG, INFO, WARNING, ERROR, CRITICAL
+log_level: DEBUG
+
+# Log format: 'plain' (human-readable) or 'json' (machine-parseable)
+# plain: Suitable for development and debugging
+# json: Suitable for production and log aggregation systems
+log_format: plain
+
+# Rotation policy for log files
+rotation:
+  # Type: daily or size
+  # daily: Rotate at midnight (new file each day)
+  # size: Rotate when file reaches specified size
+  type: daily
+  
+  # Size-based rotation (only used if type: size)
+  size: 100 MB
+  
+  # Retention: how long to keep old logs
+  # all: Keep all log files (no deletion)
+  # <number>: Keep logs for specified duration (e.g., "7 days", "4 weeks")
+  retention: all
+
+# Module-specific log levels (optional)
+# Uncomment to set custom levels for specific modules
+# module_levels:
+#   extractor: DEBUG
+#   ordering: ERROR
+#   reconstruction: INFO

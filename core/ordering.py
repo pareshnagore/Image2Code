@@ -4,6 +4,9 @@ from typing import List, Optional, Tuple
 from datetime import datetime
 
 from core.models import ImageBlock
+from core.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class BlockOrderer:
@@ -20,24 +23,31 @@ class BlockOrderer:
 
     def order(self, blocks: List[ImageBlock]) -> List[ImageBlock]:
         if len(blocks) <= 1:
+            logger.debug(f"Order: Single or no blocks | count: {len(blocks)}")
             return blocks
+        
+        logger.info(f"Starting block ordering | block_count: {len(blocks)}")
         
         # Strategy 1: line numbers
         ordered = self._order_by_line_numbers(blocks)
         if ordered:
+            logger.info(f"Ordering strategy: LINE_NUMBERS | blocks: {len(ordered)}")
             return ordered
         
         # Strategy 2: timestamp
         ordered = self._order_by_timestamp(blocks)
         if ordered:
+            logger.info(f"Ordering strategy: TIMESTAMP | blocks: {len(ordered)}")
             return ordered
         
         # Strategy 3: overlap detection
         ordered = self._order_by_overlap(blocks)
         if ordered:
+            logger.info(f"Ordering strategy: OVERLAP_DETECTION | blocks: {len(ordered)}")
             return ordered
         
         # Strategy 4: fallback
+        logger.warning(f"Ordering strategy: FALLBACK | no strategy succeeded | blocks: {len(blocks)}")
         return blocks
 
     # ------------------------------------------------------------------

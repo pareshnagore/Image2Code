@@ -6,6 +6,9 @@ from core.timestamp import get_image_timestamp
 from core.grouping import BlockGrouper, BlockGroup
 from core.ordering import BlockOrderer
 from core.reconstruction import CodeReconstructor
+from core.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class CodeExtractionPipeline:
@@ -17,9 +20,9 @@ class CodeExtractionPipeline:
     def __init__(self, debug: bool = False):
         self.debug = debug
 
-    def _log(self, msg: str):
-        if self.debug:
-            print(f"[PIPELINE] {msg}")
+    # def _log(self, msg: str):
+    #     if self.debug:
+    #         print(f"[PIPELINE] {msg}")
 
     def extract_blocks(self, image_paths: List[Path]) -> List[ImageBlock]:
         """
@@ -28,7 +31,7 @@ class CodeExtractionPipeline:
 
         blocks: List[ImageBlock] = []
 
-        self._log(f"Extracting: {image_paths}")
+        logger.info(f"Starting extraction | image_count: {len(image_paths)}")
 
         extractor = ImageExtractor()
         extraction: ExtractionResult = extractor.extract_from_images(image_paths)
@@ -50,7 +53,8 @@ class CodeExtractionPipeline:
 
         #     blocks.append(block)
 
-        self._log(f"Extracted {len(extraction.blocks)} blocks")
+        # self._log(f"Extracted {len(extraction.blocks)} blocks")
+        logger.info(f"Extraction complete | success: {len(extraction.blocks)} | failed: {len(extraction.failed_images)}")
 
         return extraction.blocks
 
@@ -58,8 +62,9 @@ class CodeExtractionPipeline:
         """
         Step 2: Group blocks belonging to same file/script/notebook
         """
+        logger.info(f"Starting grouping | block_count: {len(blocks)}")
         groups = BlockGrouper().group(blocks)
-        self._log(f"Created {len(groups)} groups")
+        logger.info(f"Grouping complete | groups_created: {len(groups)}")
         return groups
 
     # def order_blocks(self, groups):
@@ -74,8 +79,12 @@ class CodeExtractionPipeline:
     #     return ordered_groups
     
     def order_blocks(self, blocks: List[ImageBlock]) -> List[ImageBlock]:
+        """
+        Step 3: Order blocks correctly within group
+        """
+        logger.info(f"Starting ordering | block_count: {len(blocks)}")
         ordered = BlockOrderer().order(blocks)
-        self._log("Ordering complete")
+        logger.info(f"Ordering complete | blocks_ordered: {len(ordered)}")
         return ordered
 
     # def reconstruct(self, ordered_groups):
@@ -90,8 +99,12 @@ class CodeExtractionPipeline:
     #     return results
     
     def reconstruct(self, ordered_blocks: List[ImageBlock]):
+        """
+        Step 4: Reconstruct final file from ordered blocks
+        """
+        logger.info(f"Starting reconstruction | block_count: {len(ordered_blocks)}")
         result = CodeReconstructor().reconstruct(ordered_blocks)
-        self._log("Reconstruction complete")
+        logger.info(f"Reconstruction complete | format: {result.get('format', 'unknown')}")
         return result
 
     def run(self, image_paths: List[Path]):
@@ -99,15 +112,19 @@ class CodeExtractionPipeline:
         Full pipeline execution.
         """
         if not image_paths:
+            logger.error("Pipeline started with no image paths")
             raise ValueError("No image paths provided")
-        self._log("Starting pipeline")
+        
+        logger.info(f"Pipeline started | image_paths: {len(image_paths)}")
+        
         blocks = self.extract_blocks(image_paths)
         # groups = self.group_blocks(blocks)
         # ordered_groups = self.order_blocks(groups)
         # results = self.reconstruct(ordered_groups)
-        print(blocks)
+
+        logger.debug(f"Blocks extracted |  {blocks}")
         ordered_blocks = self.order_blocks(blocks)
         results = self.reconstruct(ordered_blocks)
 
-        self._log("Pipeline complete")
+        logger.info(f"Pipeline complete | status: success")
         return results

@@ -7,8 +7,12 @@ from unittest import result
 import ollama
 from core.models import ImageBlock
 from core.timestamp import get_image_timestamp, to_epoch_seconds
+from core.logger import get_logger
 from dotenv import load_dotenv
+
 load_dotenv()
+
+logger = get_logger(__name__)
 
 MODEL = "qwen3-vl:235b-cloud"
 OLLAMA_HOST = "http://localhost:11434"  # Change if Ollama is on different host/port
@@ -167,6 +171,8 @@ class ImageExtractor:
     def _extract_llm(self, image_path: Path) -> Optional[dict]:
         prompt = PROMPT.strip()
         try:
+            logger.debug(f"LLM extraction starting | model: {self.model} | image: {image_path}")
+            
             response = self.client.chat(
                 model=self.model,
                 messages=[
@@ -179,12 +185,14 @@ class ImageExtractor:
                 options=self.options,
                 format="json"
             )
-
+            
+            logger.debug(f"LLM response received | image: {image_path} | response_size: {len(response['message']['content'])}")
+            logger.debug(f"LLM Content | {response['message']['content']}")
             return response["message"]["content"]
             # return json.loads(text)
 
         except Exception as e:
-            print(f"LLM extraction failed: {image_path} : {e}")
+            logger.error(f"LLM extraction failed | image: {image_path} | error: {str(e)}")
             return None
 
     # ----------------------------
@@ -194,13 +202,18 @@ class ImageExtractor:
     def extract_from_image(self, image_path: Path) -> Optional[ImageBlock]:
         response_text = self._extract_llm(image_path)
         if not response_text:
+            logger.warning(f"No response from LLM | image: {image_path}")
             return None
         try:
             # Sometimes model wraps JSON in ```json ```
             if "```" in response_text:
                 response_text = response_text.split("```")[1] # type: ignore
                 response_text = response_text.replace("json", "", 1).strip()
+            
             data = json.loads(response_text) # type: ignore
+            
+            logger.debug(f"JSON parsed successfully | image: {image_path} | format: {data.get('format')} | cells: {len(data.get('cells', []))}")
+            
             timestamp = to_epoch_seconds(get_image_timestamp(str(image_path)))
             block = ImageBlock(
                 image_path= str(image_path),
@@ -215,9 +228,11 @@ class ImageExtractor:
                 cells = data.get("cells", []),
                 code = "\n".join(cell["content"] for cell in data.get("cells", []))
             )
+            logger.info(f"Block extracted | image: {image_path} | format: {block.format} | lines: {block.total_lines}")
             return block
-        except:
+        except Exception as e:
             # fallback if model returns raw code
+            logger.warning(f"JSON parsing failed, using fallback | image: {image_path} | error: {str(e)}")
             code_str = json.dumps(response_text) if isinstance(response_text, dict) else (response_text if response_text else "")
             return ImageBlock(
                 image_path=str(image_path),
@@ -233,11 +248,16 @@ class ImageExtractor:
             )
 
     def extract_from_images(self, image_paths: List[Path]) -> ExtractionResult:
+        logger.info(f"Starting extraction from images | count: {len(image_paths)}")
         extraction = ExtractionResult()
-        for path in image_paths:
+        for idx, path in enumerate(image_paths, 1):
+            logger.debug(f"Extracting image {idx}/{len(image_paths)} | path: {path}")
             block = self.extract_from_image(path)
             if block:
                 extraction.add_block(block)
             else:
+                logger.warning(f"Failed to extract image | path: {path}")
                 extraction.add_failure(path)
+        
+        logger.info(f"Extraction complete | success: {len(extraction.blocks)} | failed: {len(extraction.failed_images)}")
         return extraction

@@ -6,9 +6,15 @@ from PIL import Image
 from dotenv import load_dotenv
 import json
 
+from core.logger import get_logger
+
 load_dotenv()
 
+logger = get_logger(__name__)
+
+# MODEL = "qwen3-vl:8b"   # change to 4b if needed
 MODEL = "qwen3-vl:235b-cloud"
+# MODEL = "gemma3:27b-cloud"
 OLLAMA_HOST = "http://localhost:11434"  # Change if Ollama is on different host/port
 
 PROMPT = """
@@ -106,12 +112,18 @@ def extract_code(image_path):
     # Read and encode image as base64
     with open(image_path, "rb") as f:
         image_data = base64.b64encode(f.read()).decode("utf-8")
+    
+    logger.debug(f"Image encoded to base64 | size: {len(image_data)} bytes", extra={"image": image_path})
+    
     client = ollama.Client(
         host=os.getenv("OLLAMA_CLOUD_HOST", OLLAMA_HOST),
         headers={
             "Authorization": f"Bearer {os.getenv('OLLAMA_API_KEY')}"
         }
     )
+    
+    logger.info(f"Calling LLM model: {MODEL}", extra={"image": image_path})
+    
     response = client.chat(
         model=MODEL,
         messages=[
@@ -132,6 +144,8 @@ def extract_code(image_path):
         },
         format="json"
     )
+    
+    logger.debug(f"LLM response received | model: {MODEL}", extra={"image": image_path})
 
     return response['message']['content']
 
@@ -147,8 +161,9 @@ def parse_response(response_text):
         # filename = data.get("filename", "")
         # cells = data.get("cells", [])
         return data
-    except:
+    except Exception as e:
         # fallback if model returns raw code
+        logger.warning(f"JSON parsing failed, using fallback | error: {str(e)}")
         return {
             "language": "python",
             "format": "py",
@@ -204,6 +219,7 @@ def save_as_code(cells, output_file):
 
 def main():
     if len(sys.argv) < 2:
+        logger.error("No image file provided")
         print("Usage:")
         print("python extract_code_llm.py image.jpg")
         return
@@ -211,7 +227,7 @@ def main():
     image_path = sys.argv[1]
 
     if not os.path.exists(image_path):
-        print("Image not found")
+        logger.error(f"Image file not found | path: {image_path}")
         return
 
     filename = os.path.basename(image_path)
@@ -219,18 +235,20 @@ def main():
 
     output_file = f"outputs/{name}.py"
 
-    print(f"Extracting code using {MODEL}...........")
+    logger.info(f"Starting extraction | image: {image_path}", extra={"image": image_path})
 
     response = extract_code(image_path)
-    print("Raw response from model:")
-    print(response)
-    print("\nParsing response..........................")
+    
+    logger.debug("Raw response from model received", extra={"response_length": len(response)})
+    
     parsed = parse_response(response)
 
     format_ext = parsed.get("format", "python")
     language = parsed.get("language", "python")
     filename_from_image = parsed.get("filename", "")
     cells = parsed.get("cells", [])
+
+    logger.debug(f"Response parsed | format: {format_ext} | language: {language} | cells: {len(cells)}")
 
     # language = parsed["language"].lower()
     # format_ext = parsed["format"].lower()
@@ -244,12 +262,17 @@ def main():
     # choose correct extension
     output_file = f"outputs/{filename}"
 
-    if format_ext == "ipynb":
-        save_as_ipynb(cells, output_file)
-    else:
-        save_as_code(cells, output_file)
+    logger.info(f"Saving code | format: {format_ext} | language: {language} | output: {output_file}")
 
-    print(f"Saved to {output_file}")
+    try:
+        if format_ext == "ipynb":
+            save_as_ipynb(cells, output_file)
+        else:
+            save_as_code(cells, output_file)
+        
+        logger.info(f"Code saved successfully | file: {output_file}")
+    except Exception as e:
+        logger.error(f"Failed to save code | file: {output_file} | error: {str(e)}")
 
 if __name__ == "__main__":
     main()

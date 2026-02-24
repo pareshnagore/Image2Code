@@ -3,3 +3,5 @@ pillow
 numpy
 easyocr
 opencv-python
+loguru
+pyyaml
