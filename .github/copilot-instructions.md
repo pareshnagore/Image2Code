@@ -1,4 +1,4 @@
-Following are the user requirements narrated by user to AI for advice over the time during development. Use these to understand the user's needs and the context of the project. These points may not be exhaustive but are the ones that user has mentioned during the conversation. Use it as guidnace to the objectives of the project and the code development. 
+**Following are the user requirements narrated by user to AI for advice over the time during development. Use these to understand the user's needs and the context of the project. These points may not be exhaustive but are the ones that user has mentioned during the conversation. Use it as guidnace to the objectives of the project and the code development.** 
 
 - I want to make similar python program where by giving image, program will give me the code from image
 

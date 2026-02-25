@@ -55,3 +55,13 @@ Improve detection and merging of notebook cells split across images.
 10. UI Confidence Display
 
 Expose reconstruction confidence and warnings in UI.
+
+
+
+**UI Instructions later**
+- First thing first, click as much as crisp photos. Blury images may give suboptimal outputs (garbage in, garbage out lol)
+- Enable line number visibility in your IDE (vscode, cursor, notepad++, etc). It helps ordering and validation.
+- Include tab name or file name in image, so that AI can can output original filename as it is. 
+- Make sure no lines are missed across images. i.e. image 1 ends at 50 and image 2 starts at 60, then those 10 lines are gone. Overlap is fine, in fact little overlap is good to have. It helps ordering and validation. 
+- Try to click the images sequencially from top to bottom. Image timestamps is one of the fallback logic. 
+- If possible, click photos in light theme. Contrast detection and OCR is better. 

@@ -15,6 +15,8 @@ load_dotenv()
 logger = get_logger(__name__)
 
 MODEL = "qwen3-vl:235b-cloud"
+MODEL = "qwen3-vl:235b-instruct-cloud"
+# MODEL = "ministral-3:14b-cloud"
 OLLAMA_HOST = "http://localhost:11434"  # Change if Ollama is on different host/port
 
 PROMPT = """
@@ -131,7 +133,7 @@ class ImageExtractor:
         self,
         model: str = MODEL,
         temperature: float = 0,
-        top_p: float = 0.0,
+        top_p: float = 0.1,
         top_k: int = 1,
         repeat_penalty: float = 1.0,
         seed: int = 42,

@@ -5,3 +5,6 @@ easyocr
 opencv-python
 loguru
 pyyaml
+ollama
+streamlit
+streamlit-sortables
