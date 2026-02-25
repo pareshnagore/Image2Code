@@ -51,7 +51,7 @@ Priority order:
 
 CRITICAL RULES:
 
-1. Output ONLY code
+1. Output ONLY the required JSON structure. Do NOT output explanations.
 2. Do NOT explain anything
 3. Do NOT add comments
 4. Do NOT fix or modify code
@@ -63,17 +63,36 @@ CRITICAL RULES:
 10. Preserve line breaks, comments, etc. as they are in the image
 
 
+MANDATORY code/cells EXTRACTION RULE:
+
+- If ANY code text is visible in the image, you MUST extract it.
+- NEVER return empty cells array if code is visible.
+- cells MUST contain at least one code cell when code is present.
+- Returning empty cells is ONLY allowed if absolutely no code is visible in the image.
+- Even if extraction confidence is not perfect, extract the visible code exactly as seen.
+
+
+Code/Cells Extraction priority order:
+
+1. Visible code text (highest priority)
+2. Structure and indentation
+3. Line numbers alignment
+4. Syntax patterns
+Confidence uncertainty is NOT a reason to skip extraction.
+
+
 OUTPUT FORMAT (STRICT JSON):
 
 {
   "format": "ipynb | py | js | html | cpp | json | yaml | txt",
   "language": "python | javascript | cpp | html | ...",
-  "filename": "optional_filename"  # include if filename is visible in the image, otherwise omit
-  "line_numbers_visible": true,
+  "filename": "optional_filename",  # include if filename is visible in the image, otherwise omit
+  "tab_name": "exact visible ACTIVE tab name or empty string",
+  "line_numbers_visible": true | false,
   "start_line": 1,
   "end_line": 50,
   "total_lines": 50,
-  "is_notebook": false,
+  "is_notebook": false | true,
   "cells": [
     {
       "type": "code | markdown",
@@ -84,28 +103,14 @@ OUTPUT FORMAT (STRICT JSON):
   ]
 }
 
-
-ADDITIONAL REQUIRED METADATA FOR MULTI-IMAGE RECONSTRUCTION:
-
-The output JSON MUST also include these fields:
-
-{
-  "tab_name": "exact visible ACTIVE tab name or empty string",
-  "line_numbers_visible": true or false,
-  "start_line": integer if line numbers visible, else null,
-  "end_line": integer if line numbers visible, else null,
-  "total_lines": integer count of lines visible in this image,
-  "is_notebook": true or false
-}
-
-RULES:
+OTHER RULES:
 
 - start_line and end_line MUST be exact numbers if visible
 - NEVER guess line numbers
 - If line numbers not visible, use null
 - total_lines MUST count only actual code lines extracted
 - tab_name MUST match exactly visible active tab text
-- These fields are REQUIRED even if null
+- The fields are REQUIRED even if null
 """
 
 
